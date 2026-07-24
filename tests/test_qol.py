@@ -338,3 +338,32 @@ def test_shape_lock_blocks_plot_selection(window):
     px, py = window.canvas.axes.transAxes.transform((0.5, 0.5))
     window.canvas._onDragPress(MouseEvent("button_press_event", window.canvas.canvas, px, py, button=1))
     assert window.canvas._selectedShapeId != sid
+
+
+def test_font_sizes_apply_to_labels_and_legend(window):
+    _load(window, pd.DataFrame({"x": np.arange(6.0), "y": np.arange(6.0)}))
+    window.titleEdit.setText("Title")
+    window._setAxisLabelSize(22)
+    window._setTitleSize(30)
+    window._setLegendSize(18)
+    window.drawPlot()
+    ax = window.canvas.axes
+    assert ax.xaxis.label.get_fontsize() == 22
+    assert ax.yaxis.label.get_fontsize() == 22
+    assert ax.title.get_fontsize() == 30
+    leg = ax.get_legend()
+    assert leg.get_texts()[0].get_fontsize() == 18
+
+
+def test_font_sizes_round_trip_through_template(window):
+    window._setAxisLabelSize(21)
+    window._setTitleSize(29)
+    window._setLegendSize(17)
+    t = window._templateDict()
+    window._setAxisLabelSize(10)
+    window._setTitleSize(12)
+    window._setLegendSize(10)
+    window._applyTemplateDict(t)
+    assert window._getAxisLabelSize() == 21
+    assert window._getTitleSize() == 29
+    assert window._getLegendSize() == 17

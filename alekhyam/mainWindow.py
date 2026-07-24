@@ -1122,6 +1122,12 @@ class MainWindow(QMainWindow):
         self.fontFamilyCombo.activated.connect(lambda _: self.drawPlot())
         self.fontFamilyCombo.lineEdit().editingFinished.connect(self.drawPlot)
         fontLayout.addRow("Family", self.fontFamilyCombo)
+        alsContainer, self._getAxisLabelSize, self._setAxisLabelSize = sliderSpinPair(
+            6, 40, 10, step=1, decimals=0, onChange=lambda _: self.drawPlot())
+        fontLayout.addRow("Axis label size", alsContainer)
+        tsContainer, self._getTitleSize, self._setTitleSize = sliderSpinPair(
+            6, 48, 12, step=1, decimals=0, onChange=lambda _: self.drawPlot())
+        fontLayout.addRow("Title size", tsContainer)
         layout.addWidget(fontGroup)
 
         # Tick labels
@@ -1162,6 +1168,9 @@ class MainWindow(QMainWindow):
         self.legendPosCombo.activated.connect(
             lambda _: setattr(self, "_legendLoc", None))
         legendForm.addRow("Position", self.legendPosCombo)
+        lsContainer, self._getLegendSize, self._setLegendSize = sliderSpinPair(
+            6, 32, 10, step=1, decimals=0, onChange=lambda _: self.drawPlot())
+        legendForm.addRow("Text size", lsContainer)
         layout.addWidget(legendGroup)
 
         layout.addStretch()
@@ -2832,6 +2841,9 @@ class MainWindow(QMainWindow):
                 legendFrame=self.legendFrameCheck.isChecked(),
                 textAnnotations=activeAnnotations,
                 fontFamily=self.fontFamilyCombo.currentText() or None,
+                axisLabelSize=self._getAxisLabelSize(),
+                titleSize=self._getTitleSize(),
+                legendSize=self._getLegendSize(),
                 xScale="log" if self.xLogCheck.isChecked() else "linear",
                 yScale="log" if self.yLogCheck.isChecked() else "linear",
                 reverseX=self.reverseXCheck.isChecked(),
@@ -3630,6 +3642,9 @@ class MainWindow(QMainWindow):
             "yTickSize":   self._getYTickSize(),
             "yTickCount":  self._getYTickCount(),
             "fontFamily":  self.fontFamilyCombo.currentText(),
+            "axisLabelSize": self._getAxisLabelSize(),
+            "titleSize":   self._getTitleSize(),
+            "legendSize":  self._getLegendSize(),
             "showLegend":  self.showLegendCheck.isChecked(),
             "legendPos":   self.legendPosCombo.currentText(),
             "legendFrame": self.legendFrameCheck.isChecked(),
@@ -3830,6 +3845,9 @@ class MainWindow(QMainWindow):
         self._setXTickCount(_num(t.get("xTickCount", 8), 8, int))
         self._setYTickSize(_num(t.get("yTickSize", 11), 11, int))
         self._setYTickCount(_num(t.get("yTickCount", 8), 8, int))
+        self._setAxisLabelSize(_num(t.get("axisLabelSize", 10), 10, int))
+        self._setTitleSize(_num(t.get("titleSize", 12), 12, int))
+        self._setLegendSize(_num(t.get("legendSize", 10), 10, int))
         family = t.get("fontFamily", "")
         if family:
             idx = self.fontFamilyCombo.findText(family)

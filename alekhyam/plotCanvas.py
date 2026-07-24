@@ -244,6 +244,7 @@ class PlotCanvas(QWidget):
         referenceLines=None, fillBands=None,
         showLegend=True, legendPos="best", legendFrame=True,
         textAnnotations=None, fontFamily=None,
+        axisLabelSize=10, titleSize=12, legendSize=10,
         xScale="linear", yScale="linear", equalAspect=False, boxAspect=None,
         reverseX=False, reverseY=False, shapes=None,
     ):
@@ -458,12 +459,14 @@ class PlotCanvas(QWidget):
         xLabels = {e["xLabel"] for e in src}
         yLabels = {e["yLabel"] for e in src}
         self.axes.set_xlabel(
-            xLabel if xLabel is not None else (xLabels.pop() if len(xLabels) == 1 else "X")
+            xLabel if xLabel is not None else (xLabels.pop() if len(xLabels) == 1 else "X"),
+            fontsize=axisLabelSize,
         )
         self.axes.set_ylabel(
-            yLabel if yLabel is not None else (yLabels.pop() if len(yLabels) == 1 else "Y")
+            yLabel if yLabel is not None else (yLabels.pop() if len(yLabels) == 1 else "Y"),
+            fontsize=axisLabelSize,
         )
-        self.axes.set_title(title if title is not None else "")
+        self.axes.set_title(title if title is not None else "", fontsize=titleSize)
 
         # ── 9. SPINES ─────────────────────────────────────────────────
         self._applySpineWidth()
@@ -501,7 +504,8 @@ class PlotCanvas(QWidget):
             labels_list += l2
 
         if showLegend and handles:
-            leg = self.axes.legend(handles, labels_list, loc=legendPos, frameon=legendFrame)
+            leg = self.axes.legend(handles, labels_list, loc=legendPos,
+                                   frameon=legendFrame, fontsize=legendSize)
             self._draggables.append({"artist": leg, "kind": "legend"})
         elif not showLegend:
             leg = self.axes.get_legend()
