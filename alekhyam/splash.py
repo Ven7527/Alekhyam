@@ -33,7 +33,7 @@ _PAD     = 34.0
 _GAP     = 16.0
 
 
-def _ease_out(t):
+def _easeOut(t):
     return 1.0 - (1.0 - t) * (1.0 - t)
 
 
@@ -50,13 +50,13 @@ class SplashScreen(QWidget):
     Click anywhere to skip.
     """
 
-    def __init__(self, on_done):
+    def __init__(self, onDone):
         super().__init__(None)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setGeometry(QApplication.primaryScreen().geometry())
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        self._on_done   = on_done
+        self._onDone   = onDone
         self._done      = False
         self._cardIn    = 0.0     # 0 → 1 card ease-in
         self._reveal    = 0.0     # 0 → 1 paint wipe
@@ -91,7 +91,7 @@ class SplashScreen(QWidget):
             return
         self._done = True
         self._timer.stop()
-        self._on_done()
+        self._onDone()
         self.deleteLater()
 
     def _tick(self):
@@ -100,23 +100,23 @@ class SplashScreen(QWidget):
             self._cardIn = min((now - self._t0) / _IN_SECS, 1.0)
             if self._cardIn >= 1.0:
                 self._phase   = "paint"
-                self._t_paint = now
+                self._tPaint = now
         elif self._phase == "paint":
-            self._reveal = min((now - self._t_paint) / _PAINT_SECS, 1.0)
+            self._reveal = min((now - self._tPaint) / _PAINT_SECS, 1.0)
             if self._reveal >= 1.0:
                 self._phase   = "title"
-                self._t_title = now
+                self._tTitle = now
         elif self._phase == "title":
-            self._titleAlpha = min((now - self._t_title) / _TITLE_SECS, 1.0)
+            self._titleAlpha = min((now - self._tTitle) / _TITLE_SECS, 1.0)
             if self._titleAlpha >= 1.0:
                 self._phase  = "hold"
-                self._t_hold = now
+                self._tHold = now
         elif self._phase == "hold":
-            if now - self._t_hold >= _HOLD_SECS:
+            if now - self._tHold >= _HOLD_SECS:
                 self._phase  = "fade"
-                self._t_fade = now
+                self._tFade = now
         elif self._phase == "fade":
-            alpha = max(0.0, 1.0 - (now - self._t_fade) / _FADE_SECS)
+            alpha = max(0.0, 1.0 - (now - self._tFade) / _FADE_SECS)
             self._effect.setOpacity(alpha)
             if alpha <= 0.0:
                 self._finish()
@@ -127,7 +127,7 @@ class SplashScreen(QWidget):
         self._cardIn = self._reveal = self._titleAlpha = 1.0
         if self._phase != "fade":
             self._phase  = "fade"
-            self._t_fade = time.monotonic()
+            self._tFade = time.monotonic()
         if not self._timer.isActive():
             self._timer.start()
 
@@ -167,8 +167,8 @@ class SplashScreen(QWidget):
         w, h = self.width(), self.height()
 
         # ── Card geometry (scaled to screen) ──────────────────────────────
-        card_w = min(_CARD_W, w * 0.42)
-        sc     = card_w / _CARD_W
+        cardW = min(_CARD_W, w * 0.42)
+        sc     = cardW / _CARD_W
         pad    = _PAD * sc
         gap    = _GAP * sc
 
@@ -179,24 +179,24 @@ class SplashScreen(QWidget):
         wf.setStyleHint(QFont.TypeWriter)
         wf.setPixelSize(max(12, int(40 * sc)))
         wf.setWeight(QFont.Bold)
-        fm_w = QFontMetrics(wf)
+        fmW = QFontMetrics(wf)
 
-        art_w  = card_w - 2 * pad
-        art_h  = art_w / _ART_ASPECT
-        card_h = pad + art_h + gap + fm_w.height() + pad
+        artW  = cardW - 2 * pad
+        artH  = artW / _ART_ASPECT
+        cardH = pad + artH + gap + fmW.height() + pad
 
-        cx = (w - card_w) / 2.0
-        cy = (h - card_h) / 2.0
+        cx = (w - cardW) / 2.0
+        cy = (h - cardH) / 2.0
 
         # ── Ease/scale the whole card in ──────────────────────────────────
-        e = _ease_out(self._cardIn)
+        e = _easeOut(self._cardIn)
         p.setOpacity(e)
         scale = 0.93 + 0.07 * e
-        p.translate(cx + card_w / 2, cy + card_h / 2)
+        p.translate(cx + cardW / 2, cy + cardH / 2)
         p.scale(scale, scale)
-        p.translate(-(cx + card_w / 2), -(cy + card_h / 2))
+        p.translate(-(cx + cardW / 2), -(cy + cardH / 2))
 
-        card = QRectF(cx, cy, card_w, card_h)
+        card = QRectF(cx, cy, cardW, cardH)
         rr   = 26 * sc
 
         # Soft drop shadow (stacked translucent rounded rects)
@@ -213,12 +213,12 @@ class SplashScreen(QWidget):
         p.drawRoundedRect(card, rr, rr)
 
         # ── Illustration, revealed left → right ───────────────────────────
-        art_rect = QRectF(cx + pad, cy + pad, art_w, art_h)
-        wipe = _ease_out(self._reveal)
+        artRect = QRectF(cx + pad, cy + pad, artW, artH)
+        wipe = _easeOut(self._reveal)
         p.save()
-        clip = QRectF(art_rect.x(), art_rect.y(), art_rect.width() * wipe, art_rect.height())
+        clip = QRectF(artRect.x(), artRect.y(), artRect.width() * wipe, artRect.height())
         p.setClipRect(clip)
-        self._renderArt(p, art_rect)
+        self._renderArt(p, artRect)
         p.restore()
 
         # ── Typewriter wordmark ───────────────────────────────────────────
@@ -231,20 +231,20 @@ class SplashScreen(QWidget):
             typed  = full[:n]
             typing = n < len(full)
 
-            char_w = fm_w.horizontalAdvance("A")           # monospace cell
-            full_w = fm_w.horizontalAdvance(full)
-            base_x = cx + (card_w - (full_w + char_w)) / 2
-            baseline = cy + pad + art_h + gap + fm_w.ascent()
+            charW = fmW.horizontalAdvance("A")           # monospace cell
+            fullW = fmW.horizontalAdvance(full)
+            baseX = cx + (cardW - (fullW + charW)) / 2
+            baseline = cy + pad + artH + gap + fmW.ascent()
 
             p.setFont(wf)
             p.setPen(_INK)
-            p.drawText(int(base_x), int(baseline), typed)
+            p.drawText(int(baseX), int(baseline), typed)
 
             # Cursor: solid while typing, blinking after.
-            cursor_on = True if typing else (time.monotonic() % 0.9) < 0.5
-            if cursor_on:
-                cap = fm_w.capHeight() or fm_w.ascent() * 0.7
-                cx0 = base_x + fm_w.horizontalAdvance(typed) + char_w * 0.08
+            cursorOn = True if typing else (time.monotonic() % 0.9) < 0.5
+            if cursorOn:
+                cap = fmW.capHeight() or fmW.ascent() * 0.7
+                cx0 = baseX + fmW.horizontalAdvance(typed) + charW * 0.08
                 p.setBrush(_INK)
                 p.setPen(Qt.NoPen)
-                p.drawRect(QRectF(cx0, baseline - cap, char_w * 0.72, cap))
+                p.drawRect(QRectF(cx0, baseline - cap, charW * 0.72, cap))

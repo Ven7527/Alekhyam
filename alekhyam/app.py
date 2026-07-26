@@ -143,7 +143,7 @@ def main():
         window.activateWindow()
 
     from .splash import SplashScreen
-    splash = SplashScreen(on_done=_reveal)
+    splash = SplashScreen(onDone=_reveal)
     splash.show()
 
     sys.exit(app.exec())

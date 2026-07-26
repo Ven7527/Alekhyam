@@ -375,9 +375,9 @@ class _TableHeaderBar(QWidget):
         # align with the cells regardless of where this strip sits in the layout.
         viewport = self._table.viewport()
         for col, text in self._labels.items():
-            global_x = viewport.mapToGlobal(
+            globalX = viewport.mapToGlobal(
                 QPoint(self._table.columnViewportPosition(col), 0)).x()
-            x = self.mapFromGlobal(QPoint(global_x, 0)).x()
+            x = self.mapFromGlobal(QPoint(globalX, 0)).x()
             w = self._table.columnWidth(col)
             painter.drawText(x + 9, 0, max(w - 11, 10), h,
                              Qt.AlignLeft | Qt.AlignVCenter, text)
@@ -608,7 +608,7 @@ class MainWindow(QMainWindow):
         table.setStyleSheet("QTableView::item { padding: 0px; }")
         table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-    def _autoSizeTable(self, table, empty_height=60):
+    def _autoSizeTable(self, table, emptyHeight=60):
         """Fix a table's height to its contents so it grows with its rows and
         the enclosing tab provides a single scrollbar.
 
@@ -618,7 +618,7 @@ class MainWindow(QMainWindow):
         header = table.horizontalHeader()
         height = 0 if header.isHidden() else header.sizeHint().height()
         if table.rowCount() == 0:
-            height += empty_height
+            height += emptyHeight
         else:
             for r in range(table.rowCount()):
                 height += table.rowHeight(r)
@@ -1837,13 +1837,13 @@ class MainWindow(QMainWindow):
         # Col 1: color swatch. tabColors holds matplotlib names ("tab:blue"),
         # which Qt stylesheets don't understand — resolve to a hex string so the
         # swatch actually shows the colour the series is drawn in.
-        entry_idx = next((i for i, e in enumerate(self.seriesRows) if e["id"] == rowId), 0)
-        swatch_color = _cssColor(
-            entry.get("color") or tabColors[entry_idx % len(tabColors)])
+        entryIdx = next((i for i, e in enumerate(self.seriesRows) if e["id"] == rowId), 0)
+        swatchColor = _cssColor(
+            entry.get("color") or tabColors[entryIdx % len(tabColors)])
         swatchBtn = QPushButton()
         swatchBtn.setFixedSize(18, 18)
         swatchBtn.setStyleSheet(
-            f"QPushButton {{ background-color: {swatch_color}; border: 1px solid palette(mid);"
+            f"QPushButton {{ background-color: {swatchColor}; border: 1px solid palette(mid);"
             f" border-radius: 3px; padding: 0; }}"
             f"QPushButton:hover {{ border: 2px solid palette(highlight); }}"
         )
@@ -2207,9 +2207,9 @@ class MainWindow(QMainWindow):
         from PySide6.QtGui import QCursor
         menu = QMenu(self)
         menu.addAction(self.copyPlotAction)
-        act_save = menu.addAction("Save plot…")
-        act_save.triggered.connect(self.exportPlot)
-        act_save.setEnabled(self.saveButton.isEnabled())
+        actSave = menu.addAction("Save plot…")
+        actSave.triggered.connect(self.exportPlot)
+        actSave.setEnabled(self.saveButton.isEnabled())
         menu.addAction("Reset view", lambda: self.drawPlot(_force=True))
         if self.dataFrames:
             menu.addSeparator()
@@ -2301,8 +2301,8 @@ class MainWindow(QMainWindow):
         dlg.setWindowTitle(f"{self._shapeTypeLabel(entry)} style")
         dlg.setMinimumWidth(300)
         form = QFormLayout(dlg)
-        is_image = entry["kind"] == "image"
-        if not is_image:
+        isImage = entry["kind"] == "image"
+        if not isImage:
             lineWidget, getLine, _ = colorPicker(entry.get("color") or "#e4572e",
                                                  autoLabel="—")
             form.addRow("Line colour", lineWidget)
@@ -2324,7 +2324,7 @@ class MainWindow(QMainWindow):
         alphaSpin.setValue(entry.get("alpha", 1.0))
         form.addRow("Opacity", alphaSpin)
         angleSpin = None
-        if not is_image:
+        if not isImage:
             angleSpin = QDoubleSpinBox()
             angleSpin.setRange(0.0, 359.9)
             angleSpin.setSingleStep(5.0)
@@ -2344,7 +2344,7 @@ class MainWindow(QMainWindow):
         form.addRow(bb)
         if dlg.exec():
             self._pushUndoState()
-            if not is_image:
+            if not isImage:
                 entry["color"] = getLine() or "#e4572e"
                 entry["fill"] = getFill() if fillChk.isChecked() else None
                 entry["linewidth"] = lwSpin.value()
@@ -2370,9 +2370,9 @@ class MainWindow(QMainWindow):
         if row < 0 or row >= len(self.seriesRows):
             return
         self._pushUndoState()
-        new_entry = copy.deepcopy(self.seriesRows[row])
-        new_entry["id"] = next(self._idCounter)
-        self.seriesRows.insert(row + 1, new_entry)
+        newEntry = copy.deepcopy(self.seriesRows[row])
+        newEntry["id"] = next(self._idCounter)
+        self.seriesRows.insert(row + 1, newEntry)
         self._rebuildSeriesTable()
         self.drawPlot()
 
@@ -2409,12 +2409,12 @@ class MainWindow(QMainWindow):
             return
         defX    = cols[0]
         existing = {e["yData"][1] for e in self.seriesRows if e["yData"]}
-        to_add  = [c for c in num if c != defX and c not in existing]
-        if not to_add:
+        toAdd  = [c for c in num if c != defX and c not in existing]
+        if not toAdd:
             self.statusBar().showMessage("All numeric columns are already plotted", 4000)
             return
         self._pushUndoState()
-        for col in to_add:
+        for col in toAdd:
             entry = self._newSeriesEntry(xDefault=(first, defX), yDefault=(first, col))
             self.seriesRows.append(entry)
         self._rebuildSeriesTable()
@@ -2783,11 +2783,11 @@ class MainWindow(QMainWindow):
             t = edit.text().strip()
             return "" if t.lower() == "#none" else (t or None)
 
-        title_raw = self.titleEdit.text().strip()
-        if title_raw.lower() == "#none":
+        titleRaw = self.titleEdit.text().strip()
+        if titleRaw.lower() == "#none":
             title = ""
-        elif title_raw:
-            title = title_raw
+        elif titleRaw:
+            title = titleRaw
         else:
             title = next(iter(self.dataFrames)) if len(self.dataFrames) == 1 else None
 
@@ -2826,12 +2826,12 @@ class MainWindow(QMainWindow):
                     "metricRef":  {"cmpId": entry["id"], "key": key},
                 })
 
-        box_aspect = None
+        boxAspect = None
         if self.boxAspectCheck.isChecked():
             w = self.boxAspectW.value()
             h = self.boxAspectH.value()
             if w > 0:
-                box_aspect = h / w
+                boxAspect = h / w
 
         try:
             self.canvas.plot(
@@ -2860,7 +2860,7 @@ class MainWindow(QMainWindow):
                 reverseX=self.reverseXCheck.isChecked(),
                 reverseY=self.reverseYCheck.isChecked(),
                 equalAspect=self.equalAspectCheck.isChecked(),
-                boxAspect=box_aspect,
+                boxAspect=boxAspect,
                 shapes=shapes,
             )
         except Exception as exc:
@@ -3923,15 +3923,15 @@ class MainWindow(QMainWindow):
         filterExpr = entry.get("filterExpr", "").strip()
         if filterExpr:
             try:
-                df_f = pd.DataFrame(
+                dfF = pd.DataFrame(
                     {"x": result["x"].values, "y": result["y"].values}
                 ).query(filterExpr)
-                orig_idx = df_f.index
-                result["x"] = pd.Series(df_f["x"].values)
-                result["y"] = pd.Series(df_f["y"].values)
+                origIdx = dfF.index
+                result["x"] = pd.Series(dfF["x"].values)
+                result["y"] = pd.Series(dfF["y"].values)
                 for key in ("e", "c"):
                     if key in result:
-                        result[key] = result[key].iloc[orig_idx].reset_index(drop=True)
+                        result[key] = result[key].iloc[origIdx].reset_index(drop=True)
             except Exception:
                 pass
 
@@ -4064,8 +4064,8 @@ class MainWindow(QMainWindow):
         textItem.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         self.textAnnotationTable.setItem(row, 1, textItem)
 
-        coord_label = "ax" if entry.get("coordType", "axes") == "axes" else "data"
-        posItem = QTableWidgetItem(f"({entry['x']:.2f}, {entry['y']:.2f}) {coord_label}")
+        coordLabel = "ax" if entry.get("coordType", "axes") == "axes" else "data"
+        posItem = QTableWidgetItem(f"({entry['x']:.2f}, {entry['y']:.2f}) {coordLabel}")
         posItem.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         self.textAnnotationTable.setItem(row, 2, posItem)
 
@@ -4121,7 +4121,7 @@ class MainWindow(QMainWindow):
 
     def _rebuildTabWidget(self):
         """Remove all tabs and re-add the currently visible ones (icon-only)."""
-        current_name = self._currentTabName()
+        currentName = self._currentTabName()
         self.tabs.blockSignals(True)
         while self.tabs.count():
             self.tabs.removeTab(0)
@@ -4131,8 +4131,8 @@ class MainWindow(QMainWindow):
                 self.tabs.setTabToolTip(idx, label)
         self.tabs.blockSignals(False)
         # Restore focus to the same tab if it is still visible
-        if current_name and self._tabVisible.get(current_name, True):
-            idx = self._tabIndex(current_name)
+        if currentName and self._tabVisible.get(currentName, True):
+            idx = self._tabIndex(currentName)
             if idx >= 0:
                 self.tabs.setCurrentIndex(idx)
 
@@ -4152,13 +4152,13 @@ class MainWindow(QMainWindow):
 
     def _showTabVisibilityMenu(self):
         menu = QMenu(self)
-        visible_count = sum(1 for n, _, _ in self._tabDefs if self._tabVisible.get(n, True))
+        visibleCount = sum(1 for n, _, _ in self._tabDefs if self._tabVisible.get(n, True))
         for name, label, _ in self._tabDefs:
             act = menu.addAction(label)
             act.setCheckable(True)
             act.setChecked(self._tabVisible.get(name, True))
             # Prevent hiding the last visible tab
-            if self._tabVisible.get(name, True) and visible_count <= 1:
+            if self._tabVisible.get(name, True) and visibleCount <= 1:
                 act.setEnabled(False)
             act.triggered.connect(lambda checked, n=name: self._setTabVisible(n, checked))
         btn = self.tabs.cornerWidget()

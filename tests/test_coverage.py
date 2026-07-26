@@ -117,16 +117,16 @@ def test_resolve_exec_command(monkeypatch):
 def test_splash_runs_through_phases(qapp):
     from alekhyam.splash import SplashScreen
     done = []
-    s = SplashScreen(on_done=lambda: done.append(1))
+    s = SplashScreen(onDone=lambda: done.append(1))
     s.resize(700, 500)
     s._begin()
     assert s._phase == "in"
     now = time.monotonic()
     s._t0 = now - 100;      s._tick(); assert s._phase == "paint"
-    s._t_paint = now - 100; s._tick(); assert s._phase == "title"
-    s._t_title = now - 100; s._tick(); assert s._phase == "hold"
-    s._t_hold = now - 100;  s._tick(); assert s._phase == "fade"
-    s._t_fade = now - 100;  s._tick()
+    s._tPaint = now - 100; s._tick(); assert s._phase == "title"
+    s._tTitle = now - 100; s._tick(); assert s._phase == "hold"
+    s._tHold = now - 100;  s._tick(); assert s._phase == "fade"
+    s._tFade = now - 100;  s._tick()
     assert done == [1]                            # handed off exactly once
     s._finish()                                   # idempotent
     assert done == [1]
@@ -135,7 +135,7 @@ def test_splash_runs_through_phases(qapp):
 def test_splash_paint_and_skip(qapp):
     from alekhyam.splash import SplashScreen
     done = []
-    s = SplashScreen(on_done=lambda: done.append(1))
+    s = SplashScreen(onDone=lambda: done.append(1))
     s.resize(700, 500)
     for phase in ("paint", "title", "hold"):
         s._phase = phase

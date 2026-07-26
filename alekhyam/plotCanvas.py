@@ -326,8 +326,8 @@ class PlotCanvas(QWidget):
             alpha    = entry.get("alpha", 0.9)
             lstyle   = entry.get("linestyle", "-")
             zo       = entry.get("zorder", 3)
-            edge_col = "black" if entry.get("markerEdge", True) else "none"
-            edge_w   = markerEdgeWidth if entry.get("markerEdge", True) else 0.0
+            edgeCol = "black" if entry.get("markerEdge", True) else "none"
+            edgeW   = markerEdgeWidth if entry.get("markerEdge", True) else 0.0
             xVals    = entry["xValues"]
             yVals    = entry["yValues"]
 
@@ -341,21 +341,21 @@ class PlotCanvas(QWidget):
                     yVals,
                     bins=entry.get("bins", 20),
                     label=label, color=color, alpha=alpha,
-                    edgecolor=edge_col, linewidth=0.5, zorder=zo,
+                    edgecolor=edgeCol, linewidth=0.5, zorder=zo,
                 )
                 continue
 
-            err_vals   = entry.get("errValues")
-            color_vals = entry.get("colorValues")
+            errVals   = entry.get("errValues")
+            colorVals = entry.get("colorValues")
 
             if entry["kind"] == "scatter":
-                if color_vals is not None:
+                if colorVals is not None:
                     ax.scatter(
                         xVals, yVals,
                         label=label,
                         s=entry.get("scatterSize", scatterSize),
                         alpha=alpha,
-                        c=color_vals, cmap="viridis",
+                        c=colorVals, cmap="viridis",
                         marker=marker or "o",
                         linewidths=0, edgecolors="none", zorder=zo,
                     )
@@ -364,23 +364,23 @@ class PlotCanvas(QWidget):
                         xVals, yVals,
                         label=label, s=entry.get("scatterSize", scatterSize),
                         alpha=alpha, color=color, marker=marker or "o",
-                        linewidths=edge_w, edgecolors=edge_col, zorder=zo,
+                        linewidths=edgeW, edgecolors=edgeCol, zorder=zo,
                     )
-                if err_vals is not None:
+                if errVals is not None:
                     ax.errorbar(
-                        xVals, yVals, yerr=err_vals,
+                        xVals, yVals, yerr=errVals,
                         fmt="none", color=color, alpha=alpha * 0.7,
                         capsize=3, capthick=1.0, elinewidth=1.0, zorder=zo,
                     )
             else:  # line
-                if err_vals is not None:
+                if errVals is not None:
                     ax.errorbar(
-                        xVals, yVals, yerr=err_vals,
+                        xVals, yVals, yerr=errVals,
                         label=label, linewidth=width, color=color,
                         linestyle=lstyle, marker=marker, alpha=alpha,
                         markersize=markerSize, capsize=3, capthick=1.0,
-                        markeredgewidth=edge_w if marker else 0.0,
-                        markeredgecolor=edge_col if marker else None,
+                        markeredgewidth=edgeW if marker else 0.0,
+                        markeredgecolor=edgeCol if marker else None,
                         zorder=zo,
                     )
                 else:
@@ -389,8 +389,8 @@ class PlotCanvas(QWidget):
                         label=label, linewidth=width, color=color,
                         linestyle=lstyle, marker=marker, alpha=alpha,
                         markersize=markerSize,
-                        markeredgewidth=edge_w if marker else 0.0,
-                        markeredgecolor=edge_col if marker else None,
+                        markeredgewidth=edgeW if marker else 0.0,
+                        markeredgecolor=edgeCol if marker else None,
                         zorder=zo,
                     )
 
@@ -399,13 +399,13 @@ class PlotCanvas(QWidget):
                     win = max(2, entry.get("smoothWindow", 10))
                     if len(yVals) >= win:
                         try:
-                            y_arr = yVals.values if hasattr(yVals, "values") else np.asarray(yVals)
-                            x_arr = xVals.values if hasattr(xVals, "values") else np.asarray(xVals)
-                            smooth = pd.Series(y_arr).rolling(
+                            yArr = yVals.values if hasattr(yVals, "values") else np.asarray(yVals)
+                            xArr = xVals.values if hasattr(xVals, "values") else np.asarray(xVals)
+                            smooth = pd.Series(yArr).rolling(
                                 window=win, center=True, min_periods=1
                             ).mean().values
                             ax.plot(
-                                x_arr, smooth,
+                                xArr, smooth,
                                 linewidth=max(1.5, width * 0.7), color=color,
                                 linestyle="--", alpha=min(1.0, alpha + 0.15),
                                 zorder=zo,
@@ -504,14 +504,14 @@ class PlotCanvas(QWidget):
             self.axes.grid(False)
 
         # ── 13. LEGEND ────────────────────────────────────────────────
-        handles, labels_list = self.axes.get_legend_handles_labels()
+        handles, labelsList = self.axes.get_legend_handles_labels()
         if self._ax2 is not None:
             h2, l2 = self._ax2.get_legend_handles_labels()
             handles    += h2
-            labels_list += l2
+            labelsList += l2
 
         if showLegend and handles:
-            leg = self.axes.legend(handles, labels_list, loc=legendPos,
+            leg = self.axes.legend(handles, labelsList, loc=legendPos,
                                    frameon=legendFrame, fontsize=legendSize)
             self._draggables.append({"artist": leg, "kind": "legend"})
         elif not showLegend:
@@ -786,10 +786,10 @@ class PlotCanvas(QWidget):
         rinv = np.array([[np.cos(th), np.sin(th)], [-np.sin(th), np.cos(th)]])
         dl = rinv.dot(np.array([event.x, event.y]) - anchor)   # local offset from anchor
         odx, ody = self._ODIR[handle]
-        mpx_x, mpx_y = self._MIN_SHAPE * axw, self._MIN_SHAPE * axh
+        mpxX, mpxY = self._MIN_SHAPE * axw, self._MIN_SHAPE * axh
         w0px, h0px = w0 * axw, h0 * axh
-        wpx = max(dl[0] * odx, mpx_x) if odx else w0px
-        hpx = max(dl[1] * ody, mpx_y) if ody else h0px
+        wpx = max(dl[0] * odx, mpxX) if odx else w0px
+        hpx = max(dl[1] * ody, mpxY) if ody else h0px
         ctrl = bool(QApplication.keyboardModifiers() & Qt.ControlModifier)
         if ctrl and odx and ody and w0px > 0 and h0px > 0:
             aspect = w0px / h0px
@@ -818,16 +818,16 @@ class PlotCanvas(QWidget):
 
     _SNAP_PX = 7
 
-    def _snapTargets(self, exclude_id):
+    def _snapTargets(self, excludeId):
         xs, ys = {0.0, 0.5, 1.0}, {0.0, 0.5, 1.0}
         for s in self._shapes:
-            if s["id"] == exclude_id or s.get("locked"):
+            if s["id"] == excludeId or s.get("locked"):
                 continue
             xs.update((s["x"], s["x"] + s["w"] / 2, s["x"] + s["w"]))
             ys.update((s["y"], s["y"] + s["h"] / 2, s["y"] + s["h"]))
         return xs, ys
 
-    def _snap(self, xpts, ypts, exclude_id=None):
+    def _snap(self, xpts, ypts, excludeId=None):
         """Return (dx, dy, guide_x, guide_y): the correction to align a moving
         object's snap-points to the nearest target, plus guide-line positions.
         Hold Alt to disable."""
@@ -835,7 +835,7 @@ class PlotCanvas(QWidget):
             return 0.0, 0.0, None, None
         bb = self.axes.get_window_extent()
         tx, ty = self._SNAP_PX / bb.width, self._SNAP_PX / bb.height
-        xs, ys = self._snapTargets(exclude_id)
+        xs, ys = self._snapTargets(excludeId)
         dx, gx, bestx = 0.0, None, tx
         for p in xpts:
             for t in xs:
@@ -892,7 +892,7 @@ class PlotCanvas(QWidget):
             self._hideHover()
             return
         cx, cy = event.x, event.y
-        best_disp, best_val, bestd = None, None, float(self._HOVER_PX ** 2)
+        bestDisp, bestVal, bestd = None, None, float(self._HOVER_PX ** 2)
         for xa, ya, color, label, ax in self._hoverData:
             try:
                 pts = ax.transData.transform(np.column_stack([xa, ya]))
@@ -907,8 +907,8 @@ class PlotCanvas(QWidget):
                 continue
             i = int(np.argmin(d2))
             if d2[i] < bestd:
-                bestd, best_disp, best_val = d2[i], pts[i], (xa[i], ya[i], color, label)
-        if best_val is None:
+                bestd, bestDisp, bestVal = d2[i], pts[i], (xa[i], ya[i], color, label)
+        if bestVal is None:
             self._hideHover()
             return
         if self._hoverBg is None:
@@ -916,8 +916,8 @@ class PlotCanvas(QWidget):
             self._hoverText.set_visible(False)
             self.canvas.draw()
             self._hoverBg = self.canvas.copy_from_bbox(self.figure.bbox)
-        mx, my = self.axes.transData.inverted().transform(best_disp)
-        xv, yv, color, label = best_val
+        mx, my = self.axes.transData.inverted().transform(bestDisp)
+        xv, yv, color, label = bestVal
         self._hoverMarker.set_data([mx], [my])
         self._hoverMarker.set_markeredgecolor(color)
         self._hoverMarker.set_visible(True)

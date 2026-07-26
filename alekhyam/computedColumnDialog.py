@@ -235,11 +235,11 @@ class ComputedColumnDialog(QDialog):
     def _updatePreview(self):
         expr = self.exprEdit.text().strip()
         df = self._currentDf()
-        ok_btn = self._buttonBox.button(QDialogButtonBox.Ok)
+        okBtn = self._buttonBox.button(QDialogButtonBox.Ok)
         if not expr or df is None:
             self.previewLabel.setText("Preview appears here as you type.")
             self.previewLabel.setStyleSheet("color: #8a93a6; font-size: 12px; padding: 2px;")
-            ok_btn.setEnabled(True)
+            okBtn.setEnabled(True)
             return
         try:
             arr = evaluateFormula(df, expr)
@@ -247,11 +247,11 @@ class ComputedColumnDialog(QDialog):
             more = " …" if len(arr) > 5 else ""
             self.previewLabel.setText(f"✓  Result:  [{head}{more}]")
             self.previewLabel.setStyleSheet("color: #2e7d32; font-size: 11px; padding: 2px;")
-            ok_btn.setEnabled(True)
+            okBtn.setEnabled(True)
         except Exception as exc:
             self.previewLabel.setText(f"✗  {type(exc).__name__}: {exc}")
             self.previewLabel.setStyleSheet("color: #c62828; font-size: 11px; padding: 2px;")
-            ok_btn.setEnabled(False)
+            okBtn.setEnabled(False)
 
     def values(self):
         return (

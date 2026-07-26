@@ -401,3 +401,57 @@ def test_style_dialogs_have_minimum_width():
     # these previously opened collapsed to a tiny width
     assert ReferenceLineStyleDialog({}).minimumWidth() >= 300
     assert FillStyleDialog({}).minimumWidth() >= 300
+
+
+def test_zorder_applies_across_all_element_types(window):
+    # series, reference line, fill band, text annotation, and shape all carry
+    # their own z-order through to the rendered artists.
+    _load(window, pd.DataFrame({"x": np.arange(8.0), "y": np.linspace(-1, 1, 8)}))
+    window.seriesRows[0]["zorder"] = 7
+
+    window._addReferenceLine("horizontal")
+    window.referenceLineRows[-1]["zorder"] = 18
+
+    window._addFill("horizontal")
+    fill = window.fillRows[-1]
+    fill.update(start=-0.5, end=0.5, zorder=1)
+
+    ann = window._newTextAnnotationEntry()
+    ann.update(text="note", x=0.3, y=0.4, coordType="axes", zorder=19)
+    window.textAnnotationRows.append(ann)
+
+    window._addShape("ellipse")
+    window.shapeRows[-1]["zorder"] = 0     # behind the data
+
+    window.drawPlot()
+    ax = window.canvas.axes
+    assert 7 in [ln.get_zorder() for ln in ax.get_lines()]
+    assert any(t.get_zorder() == 19 for t in ax.texts)
+    assert any(p.get_zorder() == 1 for p in ax.patches)
+    assert window.canvas._shapes[-1]["artist"].get_zorder() == 0
+
+
+def test_zero_and_float_zorder_tolerated(window):
+    _load(window, pd.DataFrame({"x": np.arange(5.0), "y": np.arange(5.0)}))
+    window.seriesRows[0]["zorder"] = 0        # behind grid/everything
+    window.drawPlot()
+    window.seriesRows[0]["zorder"] = 3.5      # non-integer from a hand-edited file
+    window.drawPlot()                          # must not raise
+    assert 3.5 in [ln.get_zorder() for ln in window.canvas.axes.get_lines()]
+
+
+def test_legacy_template_defaults_fonts_and_zorder(window):
+    # a template/project saved before these features has no size keys; loading
+    # it must fall back to the appearance-preserving defaults, not crash.
+    _load(window, pd.DataFrame({"x": np.arange(5.0), "y": np.arange(5.0)}))
+    t = window._templateDict()
+    for k in ("axisLabelSize", "titleSize", "legendSize"):
+        t.pop(k, None)
+    window._applyTemplateDict(t)
+    assert (window._getAxisLabelSize(),
+            window._getTitleSize(),
+            window._getLegendSize()) == (10, 12, 10)
+    window.drawPlot()
+    ax = window.canvas.axes
+    assert ax.xaxis.label.get_fontsize() == 10
+    assert ax.title.get_fontsize() == 12

@@ -20,9 +20,6 @@ env/
 .coverage
 htmlcov/
 
-# Sphinx docs build output
-docs/_build/
-
 # IDE
 .vscode/
 .idea/

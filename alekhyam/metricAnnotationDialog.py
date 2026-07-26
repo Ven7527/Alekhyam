@@ -9,9 +9,9 @@ from .widgets import colorPicker
 class MetricAnnotationDialog(QDialog):
     """Display settings for a single metric annotation (RMSD / MAE / MSE)."""
 
-    def __init__(self, settings, metric_name, parent=None):
+    def __init__(self, settings, metricName, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"{metric_name} — annotation settings")
+        self.setWindowTitle(f"{metricName} — annotation settings")
         self.setMinimumWidth(330)
 
         layout = QFormLayout(self)

@@ -6,7 +6,7 @@ import pytest
 def splash(qapp):
     from alekhyam.splash import SplashScreen
     calls = []
-    s = SplashScreen(on_done=lambda: calls.append(1))
+    s = SplashScreen(onDone=lambda: calls.append(1))
     s._calls = calls
     yield s
     s._timer.stop()
@@ -50,6 +50,6 @@ def test_finish_calls_on_done_exactly_once(splash):
 
 def test_close_event_hands_off_to_app(splash):
     # If the window manager closes the splash, the main window must
-    # still be shown — on_done may never be silently dropped.
+    # still be shown — onDone may never be silently dropped.
     splash.close()
     assert splash._calls == [1]
