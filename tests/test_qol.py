@@ -367,3 +367,37 @@ def test_font_sizes_round_trip_through_template(window):
     assert window._getAxisLabelSize() == 21
     assert window._getTitleSize() == 29
     assert window._getLegendSize() == 17
+
+
+def test_zorder_applies_to_series_and_shape(window):
+    _load(window, pd.DataFrame({"x": np.arange(6.0), "y": np.arange(6.0)}))
+    window.seriesRows[0]["zorder"] = 9
+    sid = window._addShape("rect")
+    window.shapeRows[-1]["zorder"] = 8
+    window.drawPlot()
+    # the plotted data line carries the requested z-order
+    data_zs = [ln.get_zorder() for ln in window.canvas.axes.get_lines()]
+    assert 9 in data_zs
+    assert window.canvas._shapes[-1]["artist"].get_zorder() == 8
+
+
+def test_zorder_dialog_defaults_and_round_trip():
+    from alekhyam.referenceLineStyleDialog import ReferenceLineStyleDialog
+    from alekhyam.fillStyleDialog import FillStyleDialog
+    from alekhyam.textAnnotationDialog import TextAnnotationDialog
+    from alekhyam.seriesStyleDialog import SeriesStyleDialog
+    assert ReferenceLineStyleDialog({}).resultValues()["zorder"] == 2
+    assert FillStyleDialog({}).resultValues()["zorder"] == 1
+    assert TextAnnotationDialog({}).resultValues()["zorder"] == 4
+    assert SeriesStyleDialog({"kind": "line"}).resultValues()["zorder"] == 3
+    # explicit value survives the round trip
+    d = SeriesStyleDialog({"kind": "line", "zorder": 15})
+    assert d.resultValues()["zorder"] == 15
+
+
+def test_style_dialogs_have_minimum_width():
+    from alekhyam.referenceLineStyleDialog import ReferenceLineStyleDialog
+    from alekhyam.fillStyleDialog import FillStyleDialog
+    # these previously opened collapsed to a tiny width
+    assert ReferenceLineStyleDialog({}).minimumWidth() >= 300
+    assert FillStyleDialog({}).minimumWidth() >= 300

@@ -286,6 +286,7 @@ class PlotCanvas(QWidget):
             kw = dict(
                 facecolor=band.get("color") or "#1f77b4",
                 alpha=band.get("alpha", 0.2),
+                zorder=band.get("zorder", 1),
             )
             lbl = band.get("legendLabel", "")
             if lbl:
@@ -302,6 +303,7 @@ class PlotCanvas(QWidget):
                 linestyle= line.get("linestyle", "--"),
                 linewidth= line.get("linewidth", 1.5),
                 alpha    = line.get("alpha", 0.8),
+                zorder   = line.get("zorder", 2),
             )
             if line["orientation"] == "horizontal":
                 artist = self.axes.axhline(line["position"], **kw)
@@ -323,6 +325,7 @@ class PlotCanvas(QWidget):
             width    = entry.get("linewidth", lineWidth)
             alpha    = entry.get("alpha", 0.9)
             lstyle   = entry.get("linestyle", "-")
+            zo       = entry.get("zorder", 3)
             edge_col = "black" if entry.get("markerEdge", True) else "none"
             edge_w   = markerEdgeWidth if entry.get("markerEdge", True) else 0.0
             xVals    = entry["xValues"]
@@ -338,7 +341,7 @@ class PlotCanvas(QWidget):
                     yVals,
                     bins=entry.get("bins", 20),
                     label=label, color=color, alpha=alpha,
-                    edgecolor=edge_col, linewidth=0.5,
+                    edgecolor=edge_col, linewidth=0.5, zorder=zo,
                 )
                 continue
 
@@ -354,20 +357,20 @@ class PlotCanvas(QWidget):
                         alpha=alpha,
                         c=color_vals, cmap="viridis",
                         marker=marker or "o",
-                        linewidths=0, edgecolors="none",
+                        linewidths=0, edgecolors="none", zorder=zo,
                     )
                 else:
                     ax.scatter(
                         xVals, yVals,
                         label=label, s=entry.get("scatterSize", scatterSize),
                         alpha=alpha, color=color, marker=marker or "o",
-                        linewidths=edge_w, edgecolors=edge_col,
+                        linewidths=edge_w, edgecolors=edge_col, zorder=zo,
                     )
                 if err_vals is not None:
                     ax.errorbar(
                         xVals, yVals, yerr=err_vals,
                         fmt="none", color=color, alpha=alpha * 0.7,
-                        capsize=3, capthick=1.0, elinewidth=1.0,
+                        capsize=3, capthick=1.0, elinewidth=1.0, zorder=zo,
                     )
             else:  # line
                 if err_vals is not None:
@@ -378,6 +381,7 @@ class PlotCanvas(QWidget):
                         markersize=markerSize, capsize=3, capthick=1.0,
                         markeredgewidth=edge_w if marker else 0.0,
                         markeredgecolor=edge_col if marker else None,
+                        zorder=zo,
                     )
                 else:
                     ax.plot(
@@ -387,6 +391,7 @@ class PlotCanvas(QWidget):
                         markersize=markerSize,
                         markeredgewidth=edge_w if marker else 0.0,
                         markeredgecolor=edge_col if marker else None,
+                        zorder=zo,
                     )
 
                 # Rolling average overlay
@@ -403,6 +408,7 @@ class PlotCanvas(QWidget):
                                 x_arr, smooth,
                                 linewidth=max(1.5, width * 0.7), color=color,
                                 linestyle="--", alpha=min(1.0, alpha + 0.15),
+                                zorder=zo,
                             )
                         except Exception:
                             pass
@@ -434,6 +440,7 @@ class PlotCanvas(QWidget):
                 rotation  = ann.get("rotation", 0),
                 ha        = ann.get("ha", "center"),
                 va        = ann.get("va", "center"),
+                zorder    = ann.get("zorder", 4),
             )
             coordType = ann.get("coordType", "axes")
             if coordType == "axes":
@@ -547,10 +554,10 @@ class PlotCanvas(QWidget):
         (self._hoverMarker,) = self.axes.plot(
             [], [], marker="o", markersize=9, markerfacecolor="none",
             markeredgecolor="#e4572e", markeredgewidth=2.0, linestyle="none",
-            zorder=14, animated=True, visible=False)
+            zorder=55, animated=True, visible=False)
         self._hoverText = self.axes.annotate(
             "", xy=(0, 0), xytext=(12, 12), textcoords="offset points",
-            fontsize=9, color="#1a1a1a", zorder=15, animated=True, visible=False,
+            fontsize=9, color="#1a1a1a", zorder=56, animated=True, visible=False,
             bbox=dict(boxstyle="round,pad=0.35", fc="#fffbe6", ec="#e4b400", alpha=0.96))
 
         # ── 16. FLUSH ─────────────────────────────────────────────────
@@ -586,20 +593,21 @@ class PlotCanvas(QWidget):
             x, y, w, h = sh["x"], sh["y"], sh["w"], sh["h"]
             kind = sh["kind"]
             angle = sh.get("angle", 0.0)
+            zo = sh.get("zorder", 5)
             if kind == "image":
                 arr = sh.get("array")
                 if arr is None:
                     continue
                 bbox = TransformedBbox(Bbox.from_bounds(x, y, w, h),
                                        self.axes.transAxes)
-                art = BboxImage(bbox, data=arr, zorder=11,
+                art = BboxImage(bbox, data=arr, zorder=zo,
                                 alpha=sh.get("alpha", 1.0))
                 art.set_data(arr)
                 self.axes.add_artist(art)
             else:
                 fill = sh.get("fill")
                 kw = dict(
-                    transform=self.axes.transAxes, zorder=11,
+                    transform=self.axes.transAxes, zorder=zo,
                     facecolor=(fill if fill else "none"),
                     edgecolor=sh.get("color") or "#e4572e",
                     linewidth=sh.get("linewidth", 2.0),
@@ -704,7 +712,7 @@ class PlotCanvas(QWidget):
             linestyle="none", marker="s", markersize=7,
             markerfacecolor="#ffffff", markeredgecolor="#2e73b8",
             markeredgewidth=1.4, transform=self.axes.transAxes,
-            zorder=12, clip_on=False)
+            zorder=40, clip_on=False)
         self._handleArtists = [squares]
         if "rot" in disp:
             nf = inv.transform(disp["n"])
@@ -712,12 +720,12 @@ class PlotCanvas(QWidget):
             (stem,) = self.axes.plot(
                 [nf[0], rf[0]], [nf[1], rf[1]], linestyle="-",
                 color="#2e73b8", linewidth=1.2, transform=self.axes.transAxes,
-                zorder=12, clip_on=False)
+                zorder=40, clip_on=False)
             (grip,) = self.axes.plot(
                 [rf[0]], [rf[1]], linestyle="none", marker="o", markersize=8,
                 markerfacecolor="#2e73b8", markeredgecolor="#ffffff",
                 markeredgewidth=1.4, transform=self.axes.transAxes,
-                zorder=12, clip_on=False)
+                zorder=40, clip_on=False)
             self._handleArtists += [stem, grip]
 
     def _handleAt(self, event):
@@ -842,7 +850,7 @@ class PlotCanvas(QWidget):
 
     def _createGuides(self):
         style = dict(color="#e4572e", lw=1.0, ls=(0, (4, 3)), alpha=0.85,
-                     zorder=13, transform=self.axes.transAxes,
+                     zorder=40, transform=self.axes.transAxes,
                      clip_on=False, visible=False, animated=True)
         (self._guideX,) = self.axes.plot([0.5, 0.5], [0, 1], **style)
         (self._guideY,) = self.axes.plot([0, 1], [0.5, 0.5], **style)

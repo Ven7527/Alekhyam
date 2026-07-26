@@ -2299,6 +2299,7 @@ class MainWindow(QMainWindow):
         from PySide6.QtWidgets import QDialog, QDialogButtonBox
         dlg = QDialog(self)
         dlg.setWindowTitle(f"{self._shapeTypeLabel(entry)} style")
+        dlg.setMinimumWidth(300)
         form = QFormLayout(dlg)
         is_image = entry["kind"] == "image"
         if not is_image:
@@ -2332,6 +2333,11 @@ class MainWindow(QMainWindow):
             angleSpin.setWrapping(True)
             angleSpin.setValue(entry.get("angle", 0.0))
             form.addRow("Rotation", angleSpin)
+        zorderSpin = QSpinBox()
+        zorderSpin.setRange(0, 20)
+        zorderSpin.setValue(int(entry.get("zorder", 5)))
+        zorderSpin.setToolTip("Stacking order — higher numbers draw in front")
+        form.addRow("Layer (z-order)", zorderSpin)
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(dlg.accept)
         bb.rejected.connect(dlg.reject)
@@ -2344,6 +2350,7 @@ class MainWindow(QMainWindow):
                 entry["linewidth"] = lwSpin.value()
                 entry["angle"] = angleSpin.value()
             entry["alpha"] = alphaSpin.value()
+            entry["zorder"] = zorderSpin.value()
             self.drawPlot()
 
     def _openSeriesStyleDialog(self, rowId):
@@ -2724,6 +2731,7 @@ class MainWindow(QMainWindow):
                 "smoothing":    entry.get("smoothing", False),
                 "smoothWindow": entry.get("smoothWindow", 10),
                 "bins":         entry.get("bins", 20),
+                "zorder":       entry.get("zorder", 3),
             })
 
         # Fitted-curve overlays are drawn as ordinary dashed line series.
@@ -2738,12 +2746,14 @@ class MainWindow(QMainWindow):
             self.canvas.clearWarning()
 
         refLines = [
-            {k: e[k] for k in ("id", "orientation", "position", "color", "linestyle", "linewidth", "alpha")}
+            {**{k: e[k] for k in ("id", "orientation", "position", "color", "linestyle", "linewidth", "alpha")},
+             "zorder": e.get("zorder", 2)}
             for e in self.referenceLineRows if e["show"]
         ]
 
         fillBands = [
-            {k: e[k] for k in ("orientation", "start", "end", "color", "alpha", "legendLabel")}
+            {**{k: e[k] for k in ("orientation", "start", "end", "color", "alpha", "legendLabel")},
+             "zorder": e.get("zorder", 1)}
             for e in self.fillRows if e.get("show", True)
         ]
 
@@ -2754,6 +2764,7 @@ class MainWindow(QMainWindow):
             sh = {k: e.get(k) for k in
                   ("id", "kind", "x", "y", "w", "h", "color", "fill",
                    "alpha", "linewidth", "angle", "locked")}
+            sh["zorder"] = e.get("zorder", 5)
             if e["kind"] == "image":
                 sh["array"] = self._imageCache.get(e.get("imageId"))
             shapes.append(sh)

@@ -103,6 +103,12 @@ class SeriesStyleDialog(QDialog):
         )
         appLayout.addRow("Opacity", alphaContainer)
 
+        self.zorderSpin = QSpinBox()
+        self.zorderSpin.setRange(0, 20)
+        self.zorderSpin.setValue(int(entry.get("zorder", 3)))
+        self.zorderSpin.setToolTip("Stacking order — higher numbers draw in front")
+        appLayout.addRow("Layer (z-order)", self.zorderSpin)
+
         if self._kind != "histogram":
             self.markerEdgeCheck = QCheckBox("Draw marker edge / outline")
             self.markerEdgeCheck.setChecked(entry.get("markerEdge", True))
@@ -205,6 +211,7 @@ class SeriesStyleDialog(QDialog):
             "legendLabel": self.legendEdit.text().strip(),
             "color":       self._getColor(),
             "alpha":       self._getAlpha(),
+            "zorder":      self.zorderSpin.value(),
             "filterExpr":  self._filterEdit.text().strip(),
         }
 

@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFormLayout
+from PySide6.QtWidgets import (
+    QComboBox, QDialog, QDialogButtonBox, QFormLayout, QSpinBox,
+)
 
 from .widgets import colorPicker, sliderSpinPair
 
@@ -17,6 +19,7 @@ class ReferenceLineStyleDialog(QDialog):
     def __init__(self, entry, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Advanced line style")
+        self.setMinimumWidth(320)
 
         layout = QFormLayout(self)
 
@@ -38,6 +41,12 @@ class ReferenceLineStyleDialog(QDialog):
         )
         layout.addRow("Opacity (alpha)", alphaContainer)
 
+        self.zorderSpin = QSpinBox()
+        self.zorderSpin.setRange(0, 20)
+        self.zorderSpin.setValue(int(entry.get("zorder", 2)))
+        self.zorderSpin.setToolTip("Stacking order — higher numbers draw in front")
+        layout.addRow("Layer (z-order)", self.zorderSpin)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -49,4 +58,5 @@ class ReferenceLineStyleDialog(QDialog):
             "linestyle": lineStyleOptions[self.styleCombo.currentText()],
             "linewidth": self._getLinewidth(),
             "alpha": self._getAlpha(),
+            "zorder": self.zorderSpin.value(),
         }

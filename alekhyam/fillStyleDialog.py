@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit
+from PySide6.QtWidgets import (
+    QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QSpinBox,
+)
 
 from .widgets import colorPicker, sliderSpinPair
 
@@ -27,6 +29,12 @@ class FillStyleDialog(QDialog):
         )
         layout.addRow("Opacity", alphaContainer)
 
+        self.zorderSpin = QSpinBox()
+        self.zorderSpin.setRange(0, 20)
+        self.zorderSpin.setValue(int(entry.get("zorder", 1)))
+        self.zorderSpin.setToolTip("Stacking order — higher numbers draw in front")
+        layout.addRow("Layer (z-order)", self.zorderSpin)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -37,4 +45,5 @@ class FillStyleDialog(QDialog):
             "legendLabel": self.legendEdit.text().strip(),
             "color":       self._getFaceColor(),
             "alpha":       self._getAlpha(),
+            "zorder":      self.zorderSpin.value(),
         }

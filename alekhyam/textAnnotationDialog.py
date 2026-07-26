@@ -74,6 +74,12 @@ class TextAnnotationDialog(QDialog):
         self.vaCombo.setCurrentText(entry.get("va", "center"))
         layout.addRow("V align", self.vaCombo)
 
+        self.zorderSpin = QSpinBox()
+        self.zorderSpin.setRange(0, 20)
+        self.zorderSpin.setValue(int(entry.get("zorder", 4)))
+        self.zorderSpin.setToolTip("Stacking order — higher numbers draw in front")
+        layout.addRow("Layer (z-order)", self.zorderSpin)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -91,4 +97,5 @@ class TextAnnotationDialog(QDialog):
             "rotation":   self.rotationSpin.value(),
             "ha":         self.haCombo.currentText(),
             "va":         self.vaCombo.currentText(),
+            "zorder":     self.zorderSpin.value(),
         }
