@@ -3,6 +3,8 @@ name: Docs
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 # Allow the workflow to publish to GitHub Pages.
@@ -39,6 +41,9 @@ jobs:
 
   deploy:
     needs: build
+    # Publish only from main; on pull requests the build job validates docs
+    # without deploying.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
