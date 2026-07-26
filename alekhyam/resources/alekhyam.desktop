@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Alekhyam
+Comment=Lightweight multi-CSV line/scatter plotter
+Exec=alekhyam
+Icon=alekhyam
+Terminal=false
+Categories=Science;Education;Utility;
+StartupWMClass=Alekhyam
+StartupNotify=true

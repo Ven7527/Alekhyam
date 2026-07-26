@@ -1,0 +1,36 @@
+# Build / packaging
+dist/
+build/
+*.egg-info/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Local agent / editor state
+.claude/
+
+# Design doc (kept local, not tracked)
+DESIGN.md
+
+# OS
+.DS_Store
+Thumbs.db
